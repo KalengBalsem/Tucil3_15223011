@@ -9,3 +9,4 @@ interface GameState {
     parent?: GameState; // for solution path reconstruction
     lastMove?: Move;
 }
+
