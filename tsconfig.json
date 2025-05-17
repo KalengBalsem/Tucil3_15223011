@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",                  // Better modern syntax
+    "module": "commonjs",
+    "rootDir": "src",                    // Your TS files are in src/
+    "outDir": "bin",                     // Output JS will go to bin/
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
+  },
+  "include": ["src"]
+}

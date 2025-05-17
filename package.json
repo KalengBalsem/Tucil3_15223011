@@ -1,0 +1,26 @@
+{
+  "name": "rush-hour-solver",
+  "version": "1.0.0",
+  "description": "Solver for the Rush Hour puzzle using pathfinding algorithms (UCS, A*, GBFS, + bonus)",
+  "main": "bin/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node bin/index.js",
+    "dev": "ts-node src/index.ts"
+  },
+  "keywords": [
+    "typescript",
+    "rush-hour",
+    "pathfinding",
+    "UCS",
+    "A*",
+    "GBFS"
+  ],
+  "author": "Asybel B.P. Sianipar",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.3.3"
+  }
+}
