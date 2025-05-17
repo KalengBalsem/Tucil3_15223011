@@ -126,3 +126,20 @@ export function parsePuzzle(filePath: string): Board {
 
     return new Board(B, A, pieces, primary, exitRow, exitCol);
 }
+
+export function parsePuzzleFromString(content: string): Board {
+  const lines = content.trim().split(/\r?\n/).map(line => line.trim());
+  if (lines.length < 3) throw new Error("Insufficient lines in puzzle file");
+
+  // Mock a temporary file in memory — reuse your existing logic
+  const [dimLine, countLine, ...restLines] = lines;
+  const fullText = [dimLine, countLine, ...restLines].join("\n");
+
+  // Patch parsePuzzle to receive string input instead of reading from fs
+  const tempPath = "./.temp_puzzle.txt";
+  fs.writeFileSync(tempPath, fullText);
+  const board = parsePuzzle(tempPath);
+  fs.unlinkSync(tempPath);
+
+  return board;
+}
