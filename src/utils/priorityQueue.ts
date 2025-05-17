@@ -6,16 +6,19 @@
 export class PriorityQueue<T> {
     private heap: { item: T; priority: number}[] = [];
 
+    // returns the number of elements in the queue
     public size(): number {
         return this.heap.length;
     }
 
+    // add an item with the given priority to the queue
     public push(item: T, priority: number): void {
         const node = { item, priority };
         this.heap.push(node);
         this.bubbleUp(this.heap.length - 1);
     }
 
+    // remove and returns the element with the highest priority (lowest value)
     public pop(): T | undefined {
         const heap = this.heap;
         if (heap.length === 0) return undefined;
@@ -24,7 +27,7 @@ export class PriorityQueue<T> {
         this.bubbleDown(0);
         return node!.item;
     }
-
+    
     private bubbleUp(index: number): void {
         const heap = this.heap;
         let idx = index;
