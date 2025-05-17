@@ -3,9 +3,7 @@ import { GameState } from "../core/state";
 import { Move } from "../core/move";
 import { PriorityQueue } from "../utils/priorityQueue";
 
-export function ucs(
-    initialBoard: Board
-): {solution?: GameState; nodesExpanded: number } {
+export function ucs( initialBoard: Board ): {solution?: GameState; nodesExpanded: number } {
     // Initial state
     const initialState: GameState = {
         board: initialBoard,

@@ -4,6 +4,7 @@ import readline from 'readline';
 import { performance } from 'perf_hooks';
 import { parsePuzzle } from './utils/parser';
 import { ucs } from './algorithms/ucs';
+import { greedy } from './algorithms/greedy';
 import { boardToString, printSolution } from './utils/printer';
 
 async function getFilePath(): Promise<string> {
@@ -32,20 +33,18 @@ async function main() {
   try {
     board = parsePuzzle(filePath);
   } catch (err: any) {
-    console.error('❌ Error parsing:', err.message);
+    console.error('Error parsing:', err.message);
     process.exit(1);
   }
 
-  // Run UCS
   const t0 = performance.now();
-  const { solution, nodesExpanded } = ucs(board);
+  const { solution, nodesExpanded } = greedy(board);
   const t1 = performance.now();
 
-  // Print results
   if (solution) {
     printSolution(solution);
-    console.log(`Nodes expanded: ${nodesExpanded}`);
-    console.log(`Time: ${(t1 - t0).toFixed(3)} ms`);
+    console.log('Nodes expanded (Greedy):', nodesExpanded);
+    console.log('Time:', (t1 - t0).toFixed(3), 'ms');
   } else {
     console.log('No solution found.');
   }
