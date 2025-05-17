@@ -3,8 +3,12 @@ import path from 'path';
 import readline from 'readline';
 import { performance } from 'perf_hooks';
 import { parsePuzzle } from './utils/parser';
+
+
 import { ucs } from './algorithms/ucs';
 import { greedy } from './algorithms/greedy';
+import { aStar } from './algorithms/a_star';
+
 import { boardToString, printSolution } from './utils/printer';
 
 async function getFilePath(): Promise<string> {
@@ -38,7 +42,7 @@ async function main() {
   }
 
   const t0 = performance.now();
-  const { solution, nodesExpanded } = greedy(board);
+  const { solution, nodesExpanded } = ucs(board);
   const t1 = performance.now();
 
   if (solution) {
