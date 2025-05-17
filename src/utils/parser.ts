@@ -2,11 +2,6 @@ import fs from "fs";
 import path from "path";
 import { Piece, Orientation } from "../core/piece";
 import { Board } from "../core/board";
-import { exit } from "process";
-
-export interface ParseResult {
-    board: Board;
-}
 
 export function parsePuzzle(filePath: string): Board {
     const absPath = path.resolve(__dirname, filePath);
@@ -52,10 +47,10 @@ export function parsePuzzle(filePath: string): Board {
             continue;
         }
         // Case: normal or side-exit row
-        if (rowStr.length !== B) {
+        if (rowStr.length === B) {
             processedRows.push(rowStr);
         } else if (rowStr.length === B + 1 && rowStr.includes('K')) {
-        // exit on left or right edge
+            // exit on left or right edge
             if (rowStr[0] === 'K') {
                 exitRow = processedRows.length;
                 exitCol = -1;
@@ -85,28 +80,13 @@ export function parsePuzzle(filePath: string): Board {
     // Collect cells for pieces
     type Cell = { char: string; row: number; col: number };
     const cells: Cell[] = [];
-
-    // group cells by piece ID
     for (let r = 0; r < A; r++) {
-        const rowStr = restLines[r];
-        if (rowStr.length !== B) {
-            throw new Error(`Grid line ${r} length mismatch: expected ${B}, got ${rowStr.length}`)
-        }
+        const rowStr = processedRows[r];
         for (let c = 0; c < B; c++) {
             const ch = rowStr[c];
             if (ch === '.') continue;
-            if (ch === 'K') {
-                if (exitRow !== null) throw new Error('Multiple exits found');
-                exitRow = r;
-                exitCol = c;
-            } else {
-                cells.push({ char: ch, row: r, col: c });
-            }
+            cells.push({ char: ch, row: r, col: c });
         }
-    }
-
-    if (exitRow === null || exitCol === null) {
-        throw new Error('No exit (K) found in grid');
     }
 
     // Group cells by piece ID
@@ -117,7 +97,7 @@ export function parsePuzzle(filePath: string): Board {
         groups.get(cell.char)!.push(cell);
     }
 
-    const pieces = new Array<Piece>();
+    const pieces: Piece[] = [];
     let primary: Piece | null = null;
 
     for (const [id, pts] of groups.entries()) {
@@ -125,7 +105,7 @@ export function parsePuzzle(filePath: string): Board {
         const sameRow = pts.every((p) => p.row === pts[0].row);
         const sameCol = pts.every((p) => p.col === pts[0].col);
         let orientation: Orientation;
-        if (sameRow && sameCol) orientation = 'H';
+        if (sameRow && !sameCol) orientation = 'H';
         else if (sameCol && !sameRow) orientation = 'V';
         else throw new Error(`Piece '${id}' has non-linear cells`);
 
