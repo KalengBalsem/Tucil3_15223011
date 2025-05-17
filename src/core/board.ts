@@ -73,71 +73,86 @@ export class Board {
     // Generate all legal moves from current board:
     // for each piece, slide in both directions until blocked.
     public generateMoves(): Move[] {
-        // build occupancy map
-        const occ = Array.from({ length: this.height }, () => Array<boolean>(this.width).fill(false)
+        // Build occupancy map
+        const occ = Array.from({ length: this.height }, () =>
+        Array<boolean>(this.width).fill(false)
         );
         for (const p of this.pieces) {
-            for (let i = 0; i < p.length; i++) {
-                const r = p.row + (p.orientation === "V" ? i : 0);
-                const c = p.col + (p.orientation === "H" ? i : 0);
-                occ[r][c] = true;
-            }
+        for (let i = 0; i < p.length; i++) {
+            const r = p.row + (p.orientation === 'V' ? i : 0);
+            const c = p.col + (p.orientation === 'H' ? i : 0);
+            occ[r][c] = true;
+        }
         }
 
         const moves: Move[] = [];
 
         for (const p of this.pieces) {
-            // remove own occupancy for sliding checks
-            for (let i = 0; i < p.length; i++) {
-                const r = p.row + (p.orientation === "V" ? i : 0);
-                const c = p.col + (p.orientation === "H" ? i : 0);
-                occ[r][c] = false;
-            }
-
-            // directions
-            const deltas: [Direction, number][] = 
-                p.orientation === "H"
-                    ? [['left', -1], ['right', 1]]
-                    : [['up', -1], ['down', 1]];
-            for (const [dir, delta] of deltas) {
-                let steps = 0;
-                let r = p.row;
-                let c = p.col;
-
-                // try extending one cell at a time
-                while (true) {
-                    steps++;
-                    const nr = r + (p.orientation === "V" ? delta : 0);
-                    const nc = c + (p.orientation === "H" ? delta : 0);
-                    // check bounds for all cells of piece after move
-                    const endR = nr + (p.orientation === "V" ? p.length - 1 : 0);
-                    const endC = nc + (p.orientation === "H" ? p.length - 1 : 0);
-                    if (
-                        nr < 0 || nc < 0 ||
-                        endR >= this.height || endC >= this.width
-                    ) {
-                        break;
-                    }
-                    // check occupancy of the new cell at moving edge
-                    const checkR = p.orientation === "V" ? (delta > 0 ? endR : nr) : r;
-                    const checkC = p.orientation === "H" ? (delta > 0 ? endC : nc) : c;
-                    if (occ[checkR][checkC]) {
-                        break;
-                    }
-
-                    // record valid move
-                    moves.push({ pieceId: p.id, direction: dir, distance: steps });
+            const { row, col, length, orientation, id } = p;
+            if (orientation === 'H') {
+            // LEFT slides
+            for (let d = 1; ; d++) {
+                const targetC = col - d;
+                if (targetC >= 0) {
+                if (occ[row][targetC]) break;
+                moves.push({ pieceId: id, direction: 'left', distance: d });
+                } else {
+                // off-board left
+                if (id === this.primary.id && row === this.exitRow && targetC === this.exitCol) {
+                    moves.push({ pieceId: id, direction: 'left', distance: d });
+                }
+                break;
                 }
             }
-
-            // restore occupancy
-            for (let i = 0; i < p.length; i++) {
-                const r = p.row + (p.orientation === "V" ? i : 0);
-                const c = p.col + (p.orientation === "H" ? i : 0);
-                occ[r][c] = true;
+            // RIGHT slides
+            const rightEnd = col + length - 1;
+            for (let d = 1; ; d++) {
+                const targetC = rightEnd + d;
+                if (targetC < this.width) {
+                if (occ[row][targetC]) break;
+                moves.push({ pieceId: id, direction: 'right', distance: d });
+                } else {
+                // off-board right
+                if (id === this.primary.id && row === this.exitRow && targetC === this.exitCol) {
+                    moves.push({ pieceId: id, direction: 'right', distance: d });
+                }
+                break;
+                }
+            }
+            } else {
+            // VERTICAL: UP slides
+            for (let d = 1; ; d++) {
+                const targetR = row - d;
+                if (targetR >= 0) {
+                if (occ[targetR][col]) break;
+                moves.push({ pieceId: id, direction: 'up', distance: d });
+                } else {
+                // off-board up
+                if (id === this.primary.id && col === this.exitCol && targetR === this.exitRow) {
+                    moves.push({ pieceId: id, direction: 'up', distance: d });
+                }
+                break;
+                }
+            }
+            // DOWN slides
+            const bottomEnd = row + length - 1;
+            for (let d = 1; ; d++) {
+                const targetR = bottomEnd + d;
+                if (targetR < this.height) {
+                if (occ[targetR][col]) break;
+                moves.push({ pieceId: id, direction: 'down', distance: d });
+                } else {
+                // off-board down
+                if (id === this.primary.id && col === this.exitCol && targetR === this.exitRow) {
+                    moves.push({ pieceId: id, direction: 'down', distance: d });
+                }
+                break;
+                }
+            }
             }
         }
 
         return moves;
     }
+
 }

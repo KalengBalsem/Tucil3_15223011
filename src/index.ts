@@ -1,37 +1,54 @@
-#!/usr/bin/env node
-import { parsePuzzle } from './utils/parser';
+import fs from 'fs';
 import path from 'path';
 import readline from 'readline';
+import { performance } from 'perf_hooks';
+import { parsePuzzle } from './utils/parser';
+import { ucs } from './algorithms/ucs';
+import { boardToString, printSolution } from './utils/printer';
+
+async function getFilePath(): Promise<string> {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  return new Promise((resolve) => {
+    rl.question('Enter the puzzle filename (e.g., sample1.txt): ', (answer) => {
+      rl.close();
+      const filePath = path.resolve(__dirname, '../test', answer.trim());
+      resolve(filePath);
+    });
+  });
+}
 
 async function main() {
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-    });
+  // Determine file path (CLI arg has priority)
+  const filePath = process.argv[2]
+    ? path.resolve(__dirname, '../test', process.argv[2])
+    : await getFilePath();
 
-    const getFilePath = (): Promise<string> => {
-        return new Promise((resolve) => {
-            rl.question('Enter the puzzle filename (e.g., test1.txt): ', (answer) => {
-                rl.close();
-                const filePath = path.resolve(__dirname, '../test', answer.trim());
-                resolve(filePath);
-            });
-        });
-    };
+  // Parse
+  let board;
+  try {
+    board = parsePuzzle(filePath);
+  } catch (err: any) {
+    console.error('❌ Error parsing:', err.message);
+    process.exit(1);
+  }
 
-    const filePath = process.argv[2]
-        ? path.resolve(__dirname, '../test', process.argv[2])
-        : await getFilePath();
-    try {
-        const board = parsePuzzle(filePath);
-        console.log('Parsed board successfully!');
-        console.log('Serialized state:', board.serialize());
-        console.log(`Primary piece at: row=${board.primary.row}, col=${board.primary.col}`);
-        console.log(`Exit at: row=${board.exitRow}, col=${board.exitCol}`);
-    } catch (err: any) {
-        console.error('Error parsing:', err.message);
-        process.exit(1);
-    }
+  // Run UCS
+  const t0 = performance.now();
+  const { solution, nodesExpanded } = ucs(board);
+  const t1 = performance.now();
+
+  // Print results
+  if (solution) {
+    printSolution(solution);
+    console.log(`Nodes expanded: ${nodesExpanded}`);
+    console.log(`Time: ${(t1 - t0).toFixed(3)} ms`);
+  } else {
+    console.log('No solution found.');
+  }
 }
 
 main();
