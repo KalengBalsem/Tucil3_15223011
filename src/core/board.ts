@@ -1,6 +1,10 @@
+// src/core/board.ts
 import { Piece } from './piece';
-import { Move, Direction } from './move';
+import { Move } from './move';
 
+/**
+ * Represents the game board, including all pieces and the exit.
+ */
 export class Board {
     readonly width: number;
     readonly height: number;
@@ -25,134 +29,129 @@ export class Board {
         this.exitCol = exitCol;
     }
 
+    // Clone the board and its pieces.
     public clone(): Board {
-        // clone each piece
-        const piecesClone = this.pieces.map((p) => new Piece(p.id, p.length, p.orientation, p.row, p.col));
-
-        // find the cloned primary piece
+        const piecesClone = this.pieces.map((p) => p.clone());
         const primaryClone = piecesClone.find((p) => p.id === this.primary.id)!;
         return new Board(
-            this.width,
-            this.height,
-            piecesClone,
-            primaryClone,
-            this.exitRow,
-            this.exitCol
+        this.width,
+        this.height,
+        piecesClone,
+        primaryClone,
+        this.exitRow,
+        this.exitCol
         );
     }
 
-    // check if primary piece is at the exit
+    // Check if the primary piece has reached the exit.
     public isGoal(): boolean {
-        if (this.primary.orientation !== "H") return false;
-        return (
-            this.primary.row === this.exitRow && this.primary.col + this.primary.length - 1 === this.exitCol
-        );
+        const p = this.primary;
+        const endR = p.row + (p.orientation === 'V' ? p.length - 1 : 0);
+        const endC = p.col + (p.orientation === 'H' ? p.length - 1 : 0);
+        return endR === this.exitRow && endC === this.exitCol;
     }
 
-    // serialize the board into a unique string for hashing/visited-set
+    // Serialize the board into a unique string for hashing/visited-set.
     public serialize(): string {
-        const grid: string[][] = Array.from({ length: this.height }, () => Array(this.width).fill('.'));
+        const occ = this.buildOccMap();
+        // Place exit
+        if (this.exitRow >= 0 && this.exitRow < this.height && this.exitCol >= 0 && this.exitCol < this.width) {
+        occ[this.exitRow][this.exitCol] = false; // treat exit separately
+        }
+        // Build string row by row
+        return occ
+        .map((rowArr, r) =>
+            rowArr
+            .map((occupied, c) => occupied ? this.cellAt(r, c)! : (r === this.exitRow && c === this.exitCol ? 'K' : '.'))
+            .join('')
+        )
+        .join('|');
+    }
 
-        // place pieces
+    // Generate all legal moves from current board state.
+    public generateMoves(): Move[] {
+        const occ = this.buildOccMap();
+        const moves: Move[] = [];
+
         for (const p of this.pieces) {
-            for (let i = 0; i < p.length; i++) {
-                const r = p.row + (p.orientation === "V" ? i : 0);
-                const c = p.col + (p.orientation === "H" ? i : 0);
-                grid[r][c] = p.id;
-        
+        // Remove p's occupancy
+        this.toggleOccupancy(occ, p, false);
+        const { row, col, length, orientation, id } = p;
+        const isPrimary = id === this.primary.id;
+
+        // Direction offsets for sliding
+        const directions = orientation === 'H'
+            ? [{ dir: 'left', dr: 0, dc: -1 }, { dir: 'right', dr: 0, dc: 1 }]
+            : [{ dir: 'up', dr: -1, dc: 0 }, { dir: 'down', dr: 1, dc: 0 }];
+
+        for (const { dir, dr, dc } of directions) {
+            const leadR = row + (orientation === 'V' && dr > 0 ? length - 1 : 0);
+            const leadC = col + (orientation === 'H' && dc > 0 ? length - 1 : 0);
+
+            for (let d = 1;; d++) {
+            const nr = leadR + dr * d;
+            const nc = leadC + dc * d;
+            // Inside board
+            if (nr >= 0 && nr < this.height && nc >= 0 && nc < this.width) {
+                if (occ[nr][nc]) break;
+                moves.push({ pieceId: id, direction: dir as any, distance: d });
+                continue;
+            }
+            // Off-board: only primary to exit
+            if (
+                isPrimary &&
+                nr === this.exitRow &&
+                nc === this.exitCol
+            ) {
+                moves.push({ pieceId: id, direction: dir as any, distance: d });
+            }
+            break;
             }
         }
-
-        // mark exit if empty
-        if (grid[this.exitRow][this.exitCol] === '.') {
-            grid[this.exitRow][this.exitCol] = 'K';
+        // Restore p's occupancy
+        this.toggleOccupancy(occ, p, true);
         }
-        return grid.map((row) => row.join('')).join('|');
+        return moves;
     }
 
-    // Generate all legal moves from current board:
-    // for each piece, slide in both directions until blocked.
-    public generateMoves(): Move[] {
-        // Build occupancy map
-        const occ = Array.from({ length: this.height }, () =>
-        Array<boolean>(this.width).fill(false)
-        );
+    //Return character at (row,col): piece ID, 'K', '.', or null out of bounds.
+    public cellAt(row: number, col: number): string | null {
+        if (row < 0 || row >= this.height || col < 0 || col >= this.width) return null;
+        if (row === this.exitRow && col === this.exitCol) return 'K';
         for (const p of this.pieces) {
         for (let i = 0; i < p.length; i++) {
             const r = p.row + (p.orientation === 'V' ? i : 0);
             const c = p.col + (p.orientation === 'H' ? i : 0);
-            occ[r][c] = true;
+            if (r === row && c === col) return p.id;
         }
         }
-
-        const moves: Move[] = [];
-
-        for (const p of this.pieces) {
-            const { row, col, length, orientation, id } = p;
-            if (orientation === 'H') {
-            // LEFT slides
-            for (let d = 1; ; d++) {
-                const targetC = col - d;
-                if (targetC >= 0) {
-                if (occ[row][targetC]) break;
-                moves.push({ pieceId: id, direction: 'left', distance: d });
-                } else {
-                // off-board left
-                if (id === this.primary.id && row === this.exitRow && targetC === this.exitCol) {
-                    moves.push({ pieceId: id, direction: 'left', distance: d });
-                }
-                break;
-                }
-            }
-            // RIGHT slides
-            const rightEnd = col + length - 1;
-            for (let d = 1; ; d++) {
-                const targetC = rightEnd + d;
-                if (targetC < this.width) {
-                if (occ[row][targetC]) break;
-                moves.push({ pieceId: id, direction: 'right', distance: d });
-                } else {
-                // off-board right
-                if (id === this.primary.id && row === this.exitRow && targetC === this.exitCol) {
-                    moves.push({ pieceId: id, direction: 'right', distance: d });
-                }
-                break;
-                }
-            }
-            } else {
-            // VERTICAL: UP slides
-            for (let d = 1; ; d++) {
-                const targetR = row - d;
-                if (targetR >= 0) {
-                if (occ[targetR][col]) break;
-                moves.push({ pieceId: id, direction: 'up', distance: d });
-                } else {
-                // off-board up
-                if (id === this.primary.id && col === this.exitCol && targetR === this.exitRow) {
-                    moves.push({ pieceId: id, direction: 'up', distance: d });
-                }
-                break;
-                }
-            }
-            // DOWN slides
-            const bottomEnd = row + length - 1;
-            for (let d = 1; ; d++) {
-                const targetR = bottomEnd + d;
-                if (targetR < this.height) {
-                if (occ[targetR][col]) break;
-                moves.push({ pieceId: id, direction: 'down', distance: d });
-                } else {
-                // off-board down
-                if (id === this.primary.id && col === this.exitCol && targetR === this.exitRow) {
-                    moves.push({ pieceId: id, direction: 'down', distance: d });
-                }
-                break;
-                }
-            }
-            }
-        }
-
-        return moves;
+        return '.';
     }
 
+
+    //Build occupancy map: true if occupied by any piece.
+    public buildOccMap(): boolean[][] {
+        const occ = Array.from({ length: this.height }, () =>
+        Array(this.width).fill(false)
+        );
+        for (const p of this.pieces) {
+        this.toggleOccupancy(occ, p, true);
+        }
+        return occ;
+    }
+
+    // Toggle occupancy of a piece on the map.
+    private toggleOccupancy(
+        occ: boolean[][],
+        p: Piece,
+        state: boolean
+    ) {
+        for (let i = 0; i < p.length; i++) {
+        const r = p.row + (p.orientation === 'V' ? i : 0);
+        const c = p.col + (p.orientation === 'H' ? i : 0);
+        if (r >= 0 && r < this.height && c >= 0 && c < this.width) {
+            occ[r][c] = state;
+        }
+        }
+    }
 }
