@@ -65,4 +65,13 @@ export class PriorityQueue<T> {
         const heap = this.heap;
         [heap[i], heap[j]] = [heap[j], heap[i]];
     }
+
+    public peek(): T | undefined {
+        return this.heap.length > 0 ? this.heap[0].item : undefined;
+    }
+    
+    public peekPriority(): number | undefined {
+        return this.heap.length > 0 ? this.heap[0].priority : undefined;
+    }
+
 }

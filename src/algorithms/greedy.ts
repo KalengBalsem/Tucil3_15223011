@@ -2,8 +2,12 @@ import { Board } from '../core/board';
 import { GameState } from '../core/state';
 import { Move } from '../core/move';
 import { PriorityQueue } from '../utils/priorityQueue';
-import { manhattan } from '../heuristics/manhattan';
 import { printSolution } from '../utils/printer';
+
+// Import heuristic functions
+import { manhattan } from '../heuristics/manhattan';
+import { blockingDistance } from '../heuristics/blockingDistance';
+import { combined } from '../heuristics/combined';
 
 /**
  * Greedy Best-First Search: solely guided by heuristic h(n).
@@ -11,12 +15,20 @@ import { printSolution } from '../utils/printer';
  * @returns solution and nodesExpanded
  */
 
-export function greedy( initialBoard: Board ): {solution?: GameState; nodesExpanded: number } {
+export function greedy( initialBoard: Board, heuristic: 'manhattan' | 'blocking' | 'combined' = 'manhattan'): {solution?: GameState; nodesExpanded: number } {
+    // select heuristic function
+    const heuristicFn = heuristic === 'manhattan'
+        ? manhattan
+        : heuristic === 'blocking'
+        ? blockingDistance
+        : combined;    
+
+
     const initialState: GameState = {
         board: initialBoard,
         g: 0,
-        h: manhattan(initialBoard),
-        f: manhattan(initialBoard),
+        h: heuristicFn(initialBoard),
+        f: heuristicFn(initialBoard),
         parent: undefined,
         lastMove: undefined,
     };
@@ -44,14 +56,14 @@ export function greedy( initialBoard: Board ): {solution?: GameState; nodesExpan
             const boardClone = state.board.clone();
             const piece = boardClone.pieces.find((p) => p.id === move.pieceId)!;
             piece.move(
-                move.direction == 'left' || move.direction == 'up'
+                move.direction === 'left' || move.direction === 'up'
                     ? -move.distance
                     : move.distance
             );
             const serialized = boardClone.serialize();
             if (visited.has(serialized)) continue;
 
-            const h = manhattan(boardClone);
+            const h = heuristicFn(boardClone);
             const newState: GameState = {
                 board: boardClone,
                 g: state.g + 1,

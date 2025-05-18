@@ -4,11 +4,13 @@ import readline from 'readline';
 import { performance } from 'perf_hooks';
 import { parsePuzzle } from './utils/parser';
 
-
+// import algorihthms
 import { ucs } from './algorithms/ucs';
 import { greedy } from './algorithms/greedy';
 import { aStar } from './algorithms/a_star';
+import { ida } from './algorithms/ida';
 
+// import printer
 import { boardToString, printSolution } from './utils/printer';
 
 async function getFilePath(): Promise<string> {
@@ -32,7 +34,7 @@ async function main() {
     ? path.resolve(__dirname, '../test', process.argv[2])
     : await getFilePath();
 
-  // Parse
+  // Parse UCS, Greedy, and A* algorithms
   let board;
   try {
     board = parsePuzzle(filePath);
@@ -42,7 +44,7 @@ async function main() {
   }
 
   const t0 = performance.now();
-  const { solution, nodesExpanded } = ucs(board);
+  const { solution, nodesExpanded } = aStar(board);
   const t1 = performance.now();
 
   if (solution) {
@@ -52,6 +54,9 @@ async function main() {
   } else {
     console.log('No solution found.');
   }
+
+
+
 }
 
 main();
