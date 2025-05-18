@@ -2,29 +2,44 @@
 import { GameState } from "../core/state";
 import { Board } from "../core/board";
 import { Move } from "../core/move";
+import chalk from "chalk";
 
 /**
  * Convert a Board into a string representation (rows separated by newline).
+ * Highlights:
+ * - 'P' (primary) = yellow
+ * - exit 'K' = cyan
+ * - moved piece (if specified) = green
  */
-export function boardToString(board: Board): string {
+export function boardToString(board: Board, highlightId?: string): string {
   const lines: string[] = [];
   for (let r = 0; r < board.height; r++) {
     let row = "";
     for (let c = 0; c < board.width; c++) {
-      // Determine character at cell or exit
+      let ch = '.';
       if (r === board.exitRow && c === board.exitCol) {
-        row += "K";
+        ch = 'K';
       } else {
-        // find a piece occupying this cell
-        const cellChar = board.pieces.find((p) => {
+        const p = board.pieces.find((p) => {
           for (let i = 0; i < p.length; i++) {
             const rr = p.row + (p.orientation === "V" ? i : 0);
             const cc = p.col + (p.orientation === "H" ? i : 0);
             if (rr === r && cc === c) return true;
           }
           return false;
-        })?.id;
-        row += cellChar ?? ".";
+        });
+        if (p) ch = p.id;
+      }
+
+      // Apply colors
+      if (ch === 'P') {
+        row += chalk.yellow.bold(ch);
+      } else if (ch === 'K') {
+        row += chalk.cyanBright(ch);
+      } else if (ch === highlightId) {
+        row += chalk.greenBright.bold(ch);
+      } else {
+        row += ch;
       }
     }
     lines.push(row);
@@ -52,18 +67,18 @@ export function printSolution(goal: GameState): void {
   const path = reconstructPath(goal);
   if (path.length === 0) return;
 
-  // Print initial board
-  console.log("Papan Awal");
+  console.log(chalk.bold("Papan Awal"));
   console.log(boardToString(path[0].board));
   console.log();
 
-  // Iterate moves
   for (let i = 1; i < path.length; i++) {
     const state = path[i];
     const move: Move = state.lastMove!;
-    // Format "Gerakan i: <piece>-<direction>"
-    console.log(`Gerakan ${i}: ${move.pieceId}-${move.direction}`);
-    console.log(boardToString(state.board));
+    console.log(
+      chalk.bold(`Gerakan ${i}: `) +
+      chalk.greenBright(`${move.pieceId}-${move.direction}`)
+    );
+    console.log(boardToString(state.board, move.pieceId));
     console.log();
   }
 }
