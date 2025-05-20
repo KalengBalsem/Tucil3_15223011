@@ -36,12 +36,7 @@ LLJMM.
 
 ## 🚀 How to Run
 
-### Option 1: Online GUI (Vercel)
-Access the web GUI instantly:  
-🔗 **Live Demo**: [https://rush-hour-solver.vercel.app](https://rush-hour-solver.vercel.app)  
-No installation needed—paste puzzle text or upload a `.txt` file and click **Solve**.
-
-### Option 2: CLI (Terminal)
+### Option 1: CLI (Terminal)
 1. **Install Dependencies** (from project root):
    ```bash
    npm install
@@ -62,7 +57,7 @@ No installation needed—paste puzzle text or upload a `.txt` file and click **S
 
    Outputs board states, moves, nodes expanded, and time taken.
 
-### Option 3: Local GUI (Next.js)
+### Option 2: Local GUI (Next.js)
 1. **Navigate to Web UI**:
    ```bash
    cd web-ui
