@@ -1,4 +1,3 @@
-// src/utils/printer.ts
 import chalk from "chalk"
 import { GameState } from "../core/state"
 import { Board } from "../core/board"

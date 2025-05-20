@@ -174,6 +174,13 @@ export default function Home() {
             onNextStep={handleNextStep}
             onReset={handleReset}
             onTogglePlayback={() => setIsPlaying(p => !p)}
+            onJumpToEnd={() => {
+              if (solution.length > 0) {
+                setCurrentStep(solution.length - 1);
+                const board = updateBoardFromSolution(solution[solution.length - 1]);
+                if (board) setBoardState(board);
+              }
+            }}
             isPlaying={isPlaying}
             canGoBack={currentStep > 0}
             canGoForward={currentStep < solution.length - 1}

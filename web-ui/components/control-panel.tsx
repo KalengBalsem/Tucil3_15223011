@@ -1,27 +1,27 @@
-"use client"
-
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Play, Pause, SkipForward, SkipBack, RotateCcw } from "lucide-react"
+import { Play, Pause, SkipForward, SkipBack, RotateCcw, ChevronsRight } from "lucide-react"
 
 type ControlPanelProps = {
-  onSolve: () => void;
-  onPrevStep: () => void;
-  onNextStep: () => void;
-  onReset: () => void;
-  onTogglePlayback: () => void;
-  isPlaying: boolean;
-  canGoBack: boolean;
-  canGoForward: boolean;
-  isSolved: boolean;
-  isRunning: boolean;
-};
+  onSolve: () => void
+  onPrevStep: () => void
+  onNextStep: () => void
+  onReset: () => void
+  onJumpToEnd: () => void     // ← new
+  onTogglePlayback: () => void
+  isPlaying: boolean
+  canGoBack: boolean
+  canGoForward: boolean
+  isSolved: boolean
+  isRunning: boolean
+}
 
 export default function ControlPanel({
   onSolve,
   onPrevStep,
   onNextStep,
   onReset,
+  onJumpToEnd,               // ← new
   canGoBack,
   canGoForward,
   isRunning
@@ -30,52 +30,34 @@ export default function ControlPanel({
     <Card className="shadow-sm">
       <CardContent className="p-4">
         <div className="flex flex-wrap gap-3 justify-center">
-          <Button 
-            variant="outline" 
-            size="icon" 
-            title="Reset" 
-            onClick={onReset}
-            disabled={isRunning}
-          >
+          {/* Reset */}
+          <Button variant="outline" size="icon" title="Reset" onClick={onReset} disabled={isRunning}>
             <RotateCcw className="h-4 w-4" />
           </Button>
 
-          <Button 
-            variant="outline" 
-            size="icon" 
-            title="Previous Step" 
-            onClick={onPrevStep}
-            disabled={!canGoBack || isRunning}
-          >
+          {/* Prev */}
+          <Button variant="outline" size="icon" title="Previous Step" onClick={onPrevStep} disabled={!canGoBack || isRunning}>
             <SkipBack className="h-4 w-4" />
           </Button>
 
-          <Button 
-            className="px-8" 
-            title="Solve" 
-            onClick={onSolve}
-            disabled={isRunning}
-          >
+          {/* Jump to End */}
+          <Button variant="outline" size="icon" title="Last Step" onClick={onJumpToEnd} disabled={!canGoForward || isRunning}>
+            <ChevronsRight className="h-4 w-4" />
+          </Button>
+
+          {/* Solve */}
+          <Button className="px-8" title="Solve" onClick={onSolve} disabled={isRunning}>
             <Play className="h-4 w-4 mr-2" />
             Solve
           </Button>
 
-          <Button 
-            variant="outline" 
-            size="icon" 
-            title="Pause" 
-            disabled={!isRunning}
-          >
+          {/* Pause */}
+          <Button variant="outline" size="icon" title="Pause" disabled={!isRunning}>
             <Pause className="h-4 w-4" />
           </Button>
 
-          <Button 
-            variant="outline" 
-            size="icon" 
-            title="Next Step" 
-            onClick={onNextStep}
-            disabled={!canGoForward || isRunning}
-          >
+          {/* Next */}
+          <Button variant="outline" size="icon" title="Next Step" onClick={onNextStep} disabled={!canGoForward || isRunning}>
             <SkipForward className="h-4 w-4" />
           </Button>
         </div>

@@ -1,0 +1,215 @@
+Initial Board:
+AAB..F
+..BCDF
+G[33m[1mP[22m[39m[33m[1mP[22m[39mCDF[96mK[39m
+GH.III
+GHJ...
+LLJMM.
+
+Move 1: C-up-1
+AAB[92m[1mC[22m[39m.F
+..B[92m[1mC[22m[39mDF
+G[33m[1mP[22m[39m[33m[1mP[22m[39m.DF[96mK[39m
+GH.III
+GHJ...
+LLJMM.
+
+Move 2: P-right-1
+AABC.F
+..BCDF
+G.[33m[1mP[22m[39m[33m[1mP[22m[39mDF[96mK[39m
+GH.III
+GHJ...
+LLJMM.
+
+Move 3: D-up-1
+AABC[92m[1mD[22m[39mF
+..BC[92m[1mD[22m[39mF
+G.[33m[1mP[22m[39m[33m[1mP[22m[39m.F[96mK[39m
+GH.III
+GHJ...
+LLJMM.
+
+Move 4: P-right-1
+AABCDF
+..BCDF
+G..[33m[1mP[22m[39m[33m[1mP[22m[39mF[96mK[39m
+GH.III
+GHJ...
+LLJMM.
+
+Move 5: M-right-1
+AABCDF
+..BCDF
+G..[33m[1mP[22m[39m[33m[1mP[22m[39mF[96mK[39m
+GH.III
+GHJ...
+LLJ.[92m[1mM[22m[39m[92m[1mM[22m[39m
+
+Move 6: J-up-2
+AABCDF
+..BCDF
+G.[92m[1mJ[22m[39m[33m[1mP[22m[39m[33m[1mP[22m[39mF[96mK[39m
+GH[92m[1mJ[22m[39mIII
+GH....
+LL..MM
+
+Move 7: H-up-2
+AABCDF
+.[92m[1mH[22m[39mBCDF
+G[92m[1mH[22m[39mJ[33m[1mP[22m[39m[33m[1mP[22m[39mF[96mK[39m
+G.JIII
+G.....
+LL..MM
+
+Move 8: M-left-2
+AABCDF
+.HBCDF
+GHJ[33m[1mP[22m[39m[33m[1mP[22m[39mF[96mK[39m
+G.JIII
+G.....
+LL[92m[1mM[22m[39m[92m[1mM[22m[39m..
+
+Move 9: G-up-1
+AABCDF
+[92m[1mG[22m[39mHBCDF
+[92m[1mG[22m[39mHJ[33m[1mP[22m[39m[33m[1mP[22m[39mF[96mK[39m
+[92m[1mG[22m[39m.JIII
+......
+LLMM..
+
+Move 10: M-right-2
+AABCDF
+GHBCDF
+GHJ[33m[1mP[22m[39m[33m[1mP[22m[39mF[96mK[39m
+G.JIII
+......
+LL..[92m[1mM[22m[39m[92m[1mM[22m[39m
+
+Move 11: L-right-2
+AABCDF
+GHBCDF
+GHJ[33m[1mP[22m[39m[33m[1mP[22m[39mF[96mK[39m
+G.JIII
+......
+..[92m[1mL[22m[39m[92m[1mL[22m[39mMM
+
+Move 12: H-down-1
+AABCDF
+G.BCDF
+G[92m[1mH[22m[39mJ[33m[1mP[22m[39m[33m[1mP[22m[39mF[96mK[39m
+G[92m[1mH[22m[39mJIII
+......
+..LLMM
+
+Move 13: L-left-2
+AABCDF
+G.BCDF
+GHJ[33m[1mP[22m[39m[33m[1mP[22m[39mF[96mK[39m
+GHJIII
+......
+[92m[1mL[22m[39m[92m[1mL[22m[39m..MM
+
+Move 14: M-left-1
+AABCDF
+G.BCDF
+GHJ[33m[1mP[22m[39m[33m[1mP[22m[39mF[96mK[39m
+GHJIII
+......
+LL.[92m[1mM[22m[39m[92m[1mM[22m[39m.
+
+Move 15: J-down-2
+AABCDF
+G.BCDF
+GH.[33m[1mP[22m[39m[33m[1mP[22m[39mF[96mK[39m
+GH.III
+..[92m[1mJ[22m[39m...
+LL[92m[1mJ[22m[39mMM.
+
+Move 16: M-right-1
+AABCDF
+G.BCDF
+GH.[33m[1mP[22m[39m[33m[1mP[22m[39mF[96mK[39m
+GH.III
+..J...
+LLJ.[92m[1mM[22m[39m[92m[1mM[22m[39m
+
+Move 17: I-left-1
+AABCDF
+G.BCDF
+GH.[33m[1mP[22m[39m[33m[1mP[22m[39mF[96mK[39m
+GH[92m[1mI[22m[39m[92m[1mI[22m[39m[92m[1mI[22m[39m.
+..J...
+LLJ.MM
+
+Move 18: H-up-1
+AABCDF
+G[92m[1mH[22m[39mBCDF
+G[92m[1mH[22m[39m.[33m[1mP[22m[39m[33m[1mP[22m[39mF[96mK[39m
+G.III.
+..J...
+LLJ.MM
+
+Move 19: F-down-1
+AABCD.
+GHBCD[92m[1mF[22m[39m
+GH.[33m[1mP[22m[39m[33m[1mP[22m[39m[92m[1mF[22m[39m[96mK[39m
+G.III[92m[1mF[22m[39m
+..J...
+LLJ.MM
+
+Move 20: M-left-1
+AABCD.
+GHBCDF
+GH.[33m[1mP[22m[39m[33m[1mP[22m[39mF[96mK[39m
+G.IIIF
+..J...
+LLJ[92m[1mM[22m[39m[92m[1mM[22m[39m.
+
+Move 21: H-down-2
+AABCD.
+G.BCDF
+G..[33m[1mP[22m[39m[33m[1mP[22m[39mF[96mK[39m
+G[92m[1mH[22m[39mIIIF
+.[92m[1mH[22m[39mJ...
+LLJMM.
+
+Move 22: M-right-1
+AABCD.
+G.BCDF
+G..[33m[1mP[22m[39m[33m[1mP[22m[39mF[96mK[39m
+GHIIIF
+.HJ...
+LLJ.[92m[1mM[22m[39m[92m[1mM[22m[39m
+
+Move 23: H-up-1
+AABCD.
+G.BCDF
+G[92m[1mH[22m[39m.[33m[1mP[22m[39m[33m[1mP[22m[39mF[96mK[39m
+G[92m[1mH[22m[39mIIIF
+..J...
+LLJ.MM
+
+Move 24: M-left-1
+AABCD.
+G.BCDF
+GH.[33m[1mP[22m[39m[33m[1mP[22m[39mF[96mK[39m
+GHIIIF
+..J...
+LLJ[92m[1mM[22m[39m[92m[1mM[22m[39m.
+
+Move 25: F-down-2
+AABCD.
+G.BCD.
+GH.[33m[1mP[22m[39m[33m[1mP[22m[39m.[96mK[39m
+GHIII[92m[1mF[22m[39m
+..J..[92m[1mF[22m[39m
+LLJMM[92m[1mF[22m[39m
+
+Move 26: P-right-2
+AABCD.
+G.BCD.
+GH...[33m[1mP[22m[39m[96mK[39m
+GHIIIF
+..J..F
+LLJMMF

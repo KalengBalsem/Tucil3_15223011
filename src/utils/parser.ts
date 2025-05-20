@@ -4,8 +4,7 @@ import { Piece, Orientation } from "../core/piece";
 import { Board } from "../core/board";
 
 export function parsePuzzle(filePath: string): Board {
-    const absPath = path.resolve(__dirname, filePath);
-    const content = fs.readFileSync(absPath, "utf-8").trim();
+    const content = fs.readFileSync(filePath, "utf-8").trim();
     const lines = content.split(/\r?\n/).map((l) => l.trim());
 
     if (lines.length < 3) {
@@ -54,6 +53,7 @@ export function parsePuzzle(filePath: string): Board {
             if (rowStr[0] === 'K') {
                 exitRow = processedRows.length;
                 exitCol = -1;
+                console.log(`Detected left exit at row ${exitRow}`)
                 processedRows.push(rowStr.slice(1));
             } else if (rowStr[B] === 'K') {
                 exitRow = processedRows.length;
@@ -67,7 +67,6 @@ export function parsePuzzle(filePath: string): Board {
                 `Grid line ${processedRows.length} length mismatch: expected ${B} or ${B + 1}, got ${rowStr.length}`
             );
         }
-        if (processedRows.length === A) break;
     }
 
     if (processedRows.length !== A) {

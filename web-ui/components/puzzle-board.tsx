@@ -107,13 +107,13 @@ export default function PuzzleBoard({ boardState, currentStep, solution, exitRow
       }
 
       const parsedGrid = rows.map(row => row.split("").map(parseCell))
-      setGrid(fillInvisibleExit(parsedGrid, exitRow, exitCol))
+      setGrid(parsedGrid)
       return
     }
 
     // Otherwise, if boardState was provided via file load, use it
     if (boardState && boardState.length > 0) {
-      setGrid(fillInvisibleExit(boardState, exitRow, exitCol))
+      setGrid(boardState)
     } else {
       // Clear grid if no data
       setGrid([])
@@ -175,34 +175,4 @@ export default function PuzzleBoard({ boardState, currentStep, solution, exitRow
       </CardContent>
     </Card>
   )
-}
-
-// Inserts an invisible buffer row/column at the exit edge so the UI can show the door
-function fillInvisibleExit(
-  grid: number[][],
-  exitRow: number,
-  exitCol: number
-): number[][] {
-  const INVISIBLE = 27
-  const numRows = grid.length
-  const numCols = grid[0]?.length ?? 0
-  let filled = grid.map(row => [...row]) // Deep copy
-
-  // Side exit: left or right
-  if (exitCol === 0) {
-    filled = filled.map(row => [INVISIBLE, ...row])
-  } else if (exitCol === numCols) {
-    filled = filled.map(row => [...row, INVISIBLE])
-  }
-
-  // Top/bottom exit
-  if (exitRow === 0) {
-    const topRow = new Array(filled[0].length).fill(INVISIBLE)
-    filled = [topRow, ...filled]
-  } else if (exitRow === numRows) {
-    const bottomRow = new Array(filled[0].length).fill(INVISIBLE)
-    filled = [...filled, bottomRow]
-  }
-
-  return filled
 }

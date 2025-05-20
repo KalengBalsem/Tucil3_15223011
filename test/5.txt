@@ -1,0 +1,10 @@
+8 8
+12
+....JJJH
+EEE....H
+PPA.C...K
+QQABCD..
+FFFB.D.M
+GG.....M
+.......M
+..LLLLLL
