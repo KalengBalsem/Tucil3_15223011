@@ -1,256 +1,206 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import PuzzleBoard from "@/components/puzzle-board"
-import InputPanel from "@/components/input-panel"
-import ControlPanel from "@/components/control-panel"
-import OutputPanel from "@/components/output-panel"
-import { BoardState, SolutionStep, SolverStatus } from "@/types"
-import { parsePuzzleInput } from "@/utils/board-parser"
-import { updateBoardFromSolution } from "@/utils/solution-utils"
+import { useState, useEffect } from "react";
+import PuzzleBoard from "@/components/puzzle-board";
+import ControlPanel from "@/components/control-panel";
+import InputPanel from "@/components/input-panel";
+import OutputPanel from "@/components/output-panel";
+import { updateBoardFromSolution } from "@/utils/solution-utils";
+import { BoardState, SolutionStep } from "@/types";
 
 export default function Home() {
-  // Board state
-  const [boardState, setBoardState] = useState<BoardState | null>(null);
-  const [puzzleInput, setPuzzleInput] = useState<string>("");
-  
-  // Algorithm settings
+  // File content from uploaded file
+  const [fileContent, setFileContent] = useState<string>("");
+
+  // Solver configuration
   const [algorithm, setAlgorithm] = useState<"ucs" | "astar" | "greedy">("astar");
   const [heuristic, setHeuristic] = useState<"manhattan" | "blocking" | "combined">("manhattan");
-  
-  // Solution state
-  const [currentSolution, setCurrentSolution] = useState<{
-    steps: SolutionStep[];
-    nodesExpanded: number;
-    moveCount: number;
-  } | null>(null);
-  const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  
-  // UI state
-  const [status, setStatus] = useState<SolverStatus>("ready");
-  const [error, setError] = useState<string | null>(null);
+
+  // Solver result
+  const [solution, setSolution] = useState<SolutionStep[]>([]);
+  const [exitRow, setExitRow] = useState<number>(-1);
+  const [exitCol, setExitCol] = useState<number>(-1);
+
+  // UI status & stats
+  const [status, setStatus] = useState<"ready" | "running" | "done" | "error">("ready");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [time, setTime] = useState<number>(0);
-  
-  // Play timer for auto-advancing steps
+  const [movesCount, setMovesCount] = useState<number>(0);
+  const [statesExpanded, setStatesExpanded] = useState<number>(0);
+
+  // Which step of `solution` to show
+  const [currentStep, setCurrentStep] = useState<number>(0);
+
+  // Current board visualization data
+  const [boardState, setBoardState] = useState<BoardState | null>(null);
+
+  // Handle file upload and reset UI
+  const handleFileLoad = (content: string) => {
+    setFileContent(content);
+    setStatus("ready");
+    setSolution([]);
+    setCurrentStep(0);
+    setBoardState(null);
+    setExitRow(-1);
+    setExitCol(-1);
+    setTime(0);
+    setMovesCount(0);
+    setStatesExpanded(0);
+  };
+
+  // Solve the current puzzle
+  const handleSolve = async () => {
+    if (!fileContent) return;
+
+    setIsLoading(true);
+    setStatus("running");
+    setTime(0);
+    setMovesCount(0);
+    setStatesExpanded(0);
+
+    const startTime = performance.now();
+    try {
+      const response = await fetch("/api/solve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: fileContent, algorithm, heuristic }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to solve the puzzle");
+      }
+
+      const data = await response.json();
+      if (!data.solution || data.solution.length === 0) {
+        setStatus("error");
+        return;
+      }
+
+      // Destructure API data
+      const { solution: sol, nodesExpanded, exitRow: eRow, exitCol: eCol } = data;
+
+      setSolution(sol as SolutionStep[]);
+      setExitRow(eRow);
+      setExitCol(eCol);
+      setMovesCount(sol.length - 1);
+      setStatesExpanded(nodesExpanded || 0);
+
+      // Initial board state
+      const initial = updateBoardFromSolution(sol[0]);
+      if (initial) setBoardState(initial);
+      setCurrentStep(0);
+
+      setStatus("done");
+      const endTime = performance.now();
+      setTime((endTime - startTime) / 1000);
+    } catch (err) {
+      console.error("Solver error:", err);
+      setStatus("error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Step navigation
+  const handleNextStep = () => {
+    if (currentStep < solution.length - 1) {
+      const next = currentStep + 1;
+      setCurrentStep(next);
+      const board = updateBoardFromSolution(solution[next]);
+      if (board) setBoardState(board);
+    }
+  };
+
+  const handlePrevStep = () => {
+    if (currentStep > 0) {
+      const prev = currentStep - 1;
+      setCurrentStep(prev);
+      const board = updateBoardFromSolution(solution[prev]);
+      if (board) setBoardState(board);
+    }
+  };
+
+  const handleReset = () => {
+    if (solution.length > 0) {
+      setCurrentStep(0);
+      const board = updateBoardFromSolution(solution[0]);
+      if (board) setBoardState(board);
+    }
+  };
+
+  // Auto-play (optional)
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
   useEffect(() => {
-    let timer: NodeJS.Timeout | null = null;
-    
-    if (isPlaying && currentSolution) {
+    let timer: NodeJS.Timeout;
+    if (isPlaying && solution.length > 0) {
       timer = setInterval(() => {
-        if (currentStepIndex < currentSolution.steps.length - 1) {
+        if (currentStep < solution.length - 1) {
           handleNextStep();
         } else {
           setIsPlaying(false);
         }
       }, 800);
     }
-    
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [isPlaying, currentStepIndex, currentSolution]);
-  
-  // Handle loading a puzzle
-  const handleLoadPuzzle = () => {
-    setIsLoading(true);
-    
-    // Clear previous results
-    setCurrentSolution(null);
-    setIsPlaying(false);
-    setCurrentStepIndex(0);
-    
-    try {
-      const boardState = parsePuzzleInput(puzzleInput);
-      
-      if (!boardState) {
-        console.error("Failed to parse puzzle input");
-        setError("Failed to parse puzzle. Please check the format and try again.");
-        setIsLoading(false);
-        return;
-      }
-      
-      // Set the board state
-      setBoardState(boardState);
-      setStatus("ready");
-      setError(null);
-    } catch (error) {
-      console.error("Error loading puzzle:", error);
-      setError("An error occurred while loading the puzzle.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  // Handle solving the puzzle
-  const handleSolvePuzzle = async () => {
-    if (!boardState) return;
-    
-    setIsLoading(true);
-    setStatus("running");
-    setError(null);
-    
-    const startTime = performance.now();
-    
-    try {
-      // Send the puzzle to the API
-      const response = await fetch("/api/solve", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          content: puzzleInput, 
-          algorithm: algorithm,
-          heuristic: heuristic,
-        }),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to solve the puzzle");
-      }
-      
-      const data = await response.json();
-      console.log("Solution data:", data);
-      
-      if (!data.solution || data.solution.length === 0) {
-        setError("No solution found for this puzzle.");
-        setStatus("error");
-        return;
-      }
-      
-      setCurrentSolution({
-        steps: data.solution,
-        nodesExpanded: data.nodesExpanded,
-        moveCount: data.solution.length - 1,
-      });
-      
-      // Update the board to the initial state
-      setCurrentStepIndex(0);
-      if (data.solution.length > 0) {
-        const newBoardState = updateBoardFromSolution(data.solution[0]);
-        if (newBoardState) {
-          setBoardState(newBoardState);
-        }
-      }
-      
-      setStatus("done");
-      
-      // Calculate solve time
-      const endTime = performance.now();
-      setTime(endTime - startTime);
-    } catch (error) {
-      console.error("Error solving puzzle:", error);
-      setError(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
-      setStatus("error");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  // Controls for stepping through the solution
-  const handleNextStep = () => {
-    if (!currentSolution) return;
-    if (currentStepIndex < currentSolution.steps.length - 1) {
-      const newStep = currentStepIndex + 1;
-      setCurrentStepIndex(newStep);
-      
-      const newBoardState = updateBoardFromSolution(currentSolution.steps[newStep]);
-      if (newBoardState) {
-        setBoardState(newBoardState);
-      }
-    }
-  };
-  
-  const handlePrevStep = () => {
-    if (!currentSolution) return;
-    if (currentStepIndex > 0) {
-      const newStep = currentStepIndex - 1;
-      setCurrentStepIndex(newStep);
-      
-      const newBoardState = updateBoardFromSolution(currentSolution.steps[newStep]);
-      if (newBoardState) {
-        setBoardState(newBoardState);
-      }
-    }
-  };
-  
-  const handleReset = () => {
-    if (!currentSolution) return;
-    setCurrentStepIndex(0);
-    
-    const newBoardState = updateBoardFromSolution(currentSolution.steps[0]);
-    if (newBoardState) {
-      setBoardState(newBoardState);
-    }
-  };
-  
-  const togglePlayback = () => {
-    setIsPlaying(!isPlaying);
-  };
-  
+    return () => clearInterval(timer!);
+  }, [isPlaying, currentStep, solution]);
+
   return (
     <main className="container py-8">
       <h1 className="text-3xl font-bold text-center mb-8">Rush Hour Puzzle Solver</h1>
-      
+
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-          <PuzzleBoard 
-            boardState={boardState ? boardState.grid : []}
-            currentStep={currentStepIndex}
-            solution={
-              currentSolution
-                ? currentSolution.steps.map(step => ({
-                    board: step.board,
-                    move: step.move
-                      ? {
-                          pieceId: step.move.piece,
-                          direction: step.move.direction,
-                          distance: step.move.distance,
-                        }
-                      : undefined,
-                  }))
-                : []
-            }
+          <PuzzleBoard
+            boardState={boardState?.grid || []}
+            currentStep={currentStep}
+            solution={solution.map(step => ({
+              board: step.board,
+              move: step.move
+                ? {
+                    pieceId: (step.move as any).piece ?? (step.move as any).pieceId,
+                    direction: step.move.direction,
+                    distance: step.move.distance,
+                  }
+                : undefined
+            }))}
+            exitRow={exitRow}
+            exitCol={exitCol}
           />
-          
+
           <ControlPanel
-            onSolve={handleSolvePuzzle}
+            onSolve={handleSolve}
             onPrevStep={handlePrevStep}
             onNextStep={handleNextStep}
             onReset={handleReset}
-            onTogglePlayback={togglePlayback}
+            onTogglePlayback={() => setIsPlaying(p => !p)}
             isPlaying={isPlaying}
-            canGoBack={currentStepIndex > 0}
-            canGoForward={currentSolution ? currentStepIndex < currentSolution.steps.length - 1 : false}
-            isSolved={status === "done"}
+            canGoBack={currentStep > 0}
+            canGoForward={currentStep < solution.length - 1}
             isRunning={status === "running"}
+            isSolved={status === "done" && solution.length > 0}
           />
         </div>
 
         <div className="space-y-6">
-          <InputPanel 
-            puzzleInput={puzzleInput} 
-            setPuzzleInput={setPuzzleInput}
-            onLoadPuzzle={handleLoadPuzzle}
+          <InputPanel
+            onFileLoad={handleFileLoad}
             algorithm={algorithm}
             setAlgorithm={setAlgorithm}
             heuristic={heuristic}
             setHeuristic={setHeuristic}
           />
-          
+
           <OutputPanel
             status={status}
             time={time}
-            movesCount={currentSolution ? currentSolution.moveCount : 0}
-            statesExpanded={currentSolution ? currentSolution.nodesExpanded : 0}
-            solution={currentSolution ? currentSolution.steps : []}
-            currentStep={currentStepIndex}
+            movesCount={movesCount}
+            statesExpanded={statesExpanded}
+            solution={solution}
+            currentStep={currentStep}
           />
         </div>
       </div>
     </main>
-  )
+  );
 }

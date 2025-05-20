@@ -7,7 +7,6 @@ import { reconstructPath } from "@main/utils/printer";
 
 export async function POST(req: Request) {
   try {
-    console.log("Got solve request:", await req.clone().json());
     const { content, algorithm, heuristic } = await req.json();
     
     if (!content) {
@@ -65,7 +64,9 @@ export async function POST(req: Request) {
     return NextResponse.json({
       solution: solutionSteps,
       nodesExpanded,
-      moveCount: solutionSteps.length - 1  // First state is initial
+      moveCount: solutionSteps.length - 1,  // First state is initial
+      exitRow: board.exitRow,
+      exitCol: board.exitCol,
     });
   } catch (error) {
     console.error("Solver error:", error);

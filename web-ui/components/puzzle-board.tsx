@@ -1,10 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -43,6 +42,7 @@ const colorMap: Record<number, string> = {
   24: "bg-indigo-600",
   25: "bg-teal-600",
   26: "bg-orange-600",
+  27: "invisible"
 }
 
 const numToLetter: Record<number, string> = {
@@ -75,48 +75,50 @@ const numToLetter: Record<number, string> = {
 }
 
 interface PuzzleBoardProps {
-  boardState: number[][]
+  boardState: number[][] | null
   currentStep: number
   solution: Array<{ board: string; move?: { pieceId: string; direction: string; distance: number } }>
+  exitRow: number
+  exitCol: number
 }
 
-export default function PuzzleBoard({ boardState, currentStep, solution }: PuzzleBoardProps) {
-  const fallback = boardState.length ? boardState : [
-    [0,1,1,0,0,0,10],
-    [0,0,0,0,2,0,10],
-    [3,3,3,0,2,0,EXIT_CELL],
-    [0,0,4,0,2,0,10],
-    [0,0,4,5,5,5,10],
-    [0,0,0,0,0,0,10],
-  ]
+export default function PuzzleBoard({ boardState, currentStep, solution, exitRow, exitCol }: PuzzleBoardProps) {
+  // Local grid state
+  const [grid, setGrid] = useState<number[][]>([])
 
-  const [grid, setGrid] = useState<number[][]>(fallback)
-
+  // Update grid when boardState changes (on file load) or when stepping through solution
   useEffect(() => {
-    if (!solution.length || currentStep === 0) {
-      setGrid(boardState.length ? boardState : fallback)
-      return
-    }
-    const raw = solution[currentStep].board.trim()
-    const rows = raw.split("\n")
-    if (rows.length !== fallback.length) {
-      setGrid(fallback)
-      return
-    }
-    const letterToNum = Object.entries(numToLetter).reduce((acc, [num, letter]) => {
-      acc[letter] = +num
-      return acc
-    }, {} as Record<string, number>)
+    // If a solution is present, render based on solution steps
+    if (solution.length > 0) {
+      const raw = solution[currentStep].board.trim()
+      const rows = raw.includes("|")
+        ? raw.split("|").map(line => line.trim())
+        : raw.split(/\r?\n|\n|\r/).filter(line => line.trim().length > 0)
 
-    const conv: number[][] = rows.map(line =>
-      line.split("").map(ch => {
+      const letterToNum = Object.entries(numToLetter).reduce((acc, [num, letter]) => {
+        acc[letter] = +num
+        return acc
+      }, {} as Record<string, number>)
+
+      function parseCell(ch: string): number {
         if (ch === ".") return 0
         if (ch === "K") return EXIT_CELL
-        return letterToNum[ch] || 0
-      })
-    )
-    setGrid(conv)
-  }, [boardState, solution, currentStep])
+        return letterToNum[ch] ?? 0
+      }
+
+      const parsedGrid = rows.map(row => row.split("").map(parseCell))
+      setGrid(fillInvisibleExit(parsedGrid, exitRow, exitCol))
+      return
+    }
+
+    // Otherwise, if boardState was provided via file load, use it
+    if (boardState && boardState.length > 0) {
+      setGrid(fillInvisibleExit(boardState, exitRow, exitCol))
+    } else {
+      // Clear grid if no data
+      setGrid([])
+    }
+  }, [boardState, solution, currentStep, exitRow, exitCol])
 
   const rows = grid.length
   const cols = grid[0]?.length || 0
@@ -127,13 +129,13 @@ export default function PuzzleBoard({ boardState, currentStep, solution }: Puzzl
         <CardTitle>Rush Hour Puzzle</CardTitle>
       </CardHeader>
       <CardContent className="px-6 flex flex-col items-center">
-        <div className="w-full max-w-lg aspect-square">
+        <div className="w-full max-w-lg">
           {rows > 0 && cols > 0 ? (
             <div
-              className="w-full h-full grid gap-1"
+              className="grid gap-1"
               style={{
                 gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-                gridAutoRows: "1fr",
+                gridAutoRows: "minmax(0, 1fr)",
               }}
             >
               {grid.flatMap((row, r) =>
@@ -144,7 +146,7 @@ export default function PuzzleBoard({ boardState, currentStep, solution }: Puzzl
                   return (
                     <div
                       key={`${r}-${c}`}
-                      className={`${bg} rounded transition-all duration-200 shadow-sm flex items-center justify-center`}
+                      className={`${bg} aspect-square rounded transition-all duration-200 shadow-sm flex items-center justify-center`}
                     >
                       {isExit ? (
                         <DoorOpen className="h-6 w-6 text-gray-400" />
@@ -157,7 +159,7 @@ export default function PuzzleBoard({ boardState, currentStep, solution }: Puzzl
               )}
             </div>
           ) : (
-            <div className="h-full flex items-center justify-center text-gray-400">
+            <div className="h-64 flex items-center justify-center text-gray-400">
               No puzzle data available
             </div>
           )}
@@ -173,4 +175,34 @@ export default function PuzzleBoard({ boardState, currentStep, solution }: Puzzl
       </CardContent>
     </Card>
   )
+}
+
+// Inserts an invisible buffer row/column at the exit edge so the UI can show the door
+function fillInvisibleExit(
+  grid: number[][],
+  exitRow: number,
+  exitCol: number
+): number[][] {
+  const INVISIBLE = 27
+  const numRows = grid.length
+  const numCols = grid[0]?.length ?? 0
+  let filled = grid.map(row => [...row]) // Deep copy
+
+  // Side exit: left or right
+  if (exitCol === 0) {
+    filled = filled.map(row => [INVISIBLE, ...row])
+  } else if (exitCol === numCols) {
+    filled = filled.map(row => [...row, INVISIBLE])
+  }
+
+  // Top/bottom exit
+  if (exitRow === 0) {
+    const topRow = new Array(filled[0].length).fill(INVISIBLE)
+    filled = [topRow, ...filled]
+  } else if (exitRow === numRows) {
+    const bottomRow = new Array(filled[0].length).fill(INVISIBLE)
+    filled = [...filled, bottomRow]
+  }
+
+  return filled
 }
