@@ -1,7 +1,7 @@
 import { Board } from '../core/board';
 import { manhattan } from './manhattan';
-import { blockingCount } from './blockingPieces';
+import { blockingDistance } from './blockingDistance';
 
 export function combined(board: Board): number {
-  return manhattan(board) + blockingCount(board);
+  return manhattan(board) + blockingDistance(board);
 }

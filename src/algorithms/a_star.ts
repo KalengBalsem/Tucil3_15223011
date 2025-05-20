@@ -5,16 +5,23 @@ import { PriorityQueue } from '../utils/priorityQueue';
 
 // Import heuristic functions
 import { manhattan } from '../heuristics/manhattan';
+import { blockingCount } from '../heuristics/blockingPieces';
 import { blockingDistance } from '../heuristics/blockingDistance';
 import { combined } from '../heuristics/combined';
 
-export function aStar(initialBoard: Board, heuristic: 'manhattan' | 'blocking' | 'combined' = 'manhattan'): { solution?: GameState; nodesExpanded: number } {
+export function aStar(
+    initialBoard: Board,
+    heuristic: 'manhattan' | 'blocking' | 'blockingCount' | 'combined' = 'manhattan'
+): { solution?: GameState; nodesExpanded: number } {
     // select heuristic function
-    const heuristicFn = heuristic === 'manhattan'
-        ? manhattan
-        : heuristic === 'blocking'
-        ? blockingDistance
-        : combined;
+    const heuristicFn =
+        heuristic === 'manhattan'
+            ? manhattan
+            : heuristic === 'blocking'
+            ? blockingDistance
+            : heuristic === 'blockingCount'
+            ? blockingCount
+            : combined;
 
     // initial state
     const h0 = heuristicFn(initialBoard);

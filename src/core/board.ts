@@ -53,20 +53,34 @@ export class Board {
 
     // Serialize the board into a unique string for hashing/visited-set.
     public serialize(): string {
-        const occ = this.buildOccMap();
-        // Place exit
-        if (this.exitRow >= 0 && this.exitRow < this.height && this.exitCol >= 0 && this.exitCol < this.width) {
-        occ[this.exitRow][this.exitCol] = false; // treat exit separately
+    const maxR = Math.max(this.height, this.exitRow + 1);
+    const maxC = Math.max(this.width,  this.exitCol + 1);
+    const occ = Array.from({length: maxR}, () => Array(maxC).fill(false));
+    // mark pieces
+    for (const p of this.pieces) {
+        for (let i = 0; i < p.length; i++) {
+        const r = p.row + (p.orientation === 'V' ? i : 0);
+        const c = p.col + (p.orientation === 'H' ? i : 0);
+        if (r >= 0 && r < maxR && c >= 0 && c < maxC) {
+            occ[r][c] = true;
         }
-        // Build string row by row
-        return occ
+        }
+    }
+
+    // build string, but if it's the exit cell, print 'K'
+    return occ
         .map((rowArr, r) =>
-            rowArr
-            .map((occupied, c) => occupied ? this.cellAt(r, c)! : (r === this.exitRow && c === this.exitCol ? 'K' : '.'))
+        rowArr
+            .map((occupied, c) =>
+            occupied
+                ? this.cellAt(r, c)!    // piece ID
+                : (r === this.exitRow && c === this.exitCol ? 'K' : '.')
+            )
             .join('')
         )
         .join('|');
     }
+
 
     // Generate all legal moves from current board state.
     public generateMoves(): Move[] {
@@ -153,5 +167,23 @@ export class Board {
             occ[r][c] = state;
         }
         }
+    }
+
+    // get grid
+    public getGrid(): string[][] {
+        const grid: string[][] = Array.from({ length: this.height }, () =>
+        Array(this.width).fill('.')
+        );
+        for (const p of this.pieces) {
+        for (let i = 0; i < p.length; i++) {
+            const r = p.row + (p.orientation === 'V' ? i : 0);
+            const c = p.col + (p.orientation === 'H' ? i : 0);
+            if (r >= 0 && r < this.height && c >= 0 && c < this.width) {
+            grid[r][c] = p.id;
+            }
+        }
+        }
+        grid[this.exitRow][this.exitCol] = 'K';
+        return grid;
     }
 }

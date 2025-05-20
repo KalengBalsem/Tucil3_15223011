@@ -2,16 +2,31 @@
 import { Board } from '../core/board';
 import { GameState } from '../core/state';
 import { Move } from '../core/move';
+
 import { manhattan } from '../heuristics/manhattan';
+import { blockingCount } from '../heuristics/blockingPieces';
+import { blockingDistance } from '../heuristics/blockingDistance';
+import { combined } from '../heuristics/combined';
+
+type HeuristicType = 'manhattan' | 'blockingCount' | 'blocking' | 'combined';
+
+const heuristics: Record<HeuristicType, (board: Board) => number> = {
+  manhattan,
+  blockingCount,
+  blocking: blockingDistance,
+  combined,
+};
 
 /**
- * IDA* Search: Iterative Deepening A* using Manhattan heuristic.
+ * IDA* Search: Iterative Deepening A* with selectable heuristic.
  * Memory-efficient, but may re-expand nodes across iterations.
  */
 export function ida(
-  initialBoard: Board
+  initialBoard: Board,
+  heuristic: HeuristicType = 'manhattan'
 ): { solution?: GameState; nodesExpanded: number } {
-  const startH = manhattan(initialBoard);
+  const hFn = heuristics[heuristic];
+  const startH = hFn(initialBoard);
   let threshold = startH;
   let nodesExpanded = 0;
 
@@ -55,7 +70,7 @@ export function ida(
         continue;
       }
       const g2 = current.g + 1;
-      const h2 = manhattan(boardClone);
+      const h2 = hFn(boardClone);
       const state2: GameState = {
         board: boardClone,
         g: g2,

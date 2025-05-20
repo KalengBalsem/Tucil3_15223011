@@ -2,27 +2,23 @@ import { Board } from '../core/board';
 import { GameState } from '../core/state';
 import { Move } from '../core/move';
 import { PriorityQueue } from '../utils/priorityQueue';
-import { printSolution } from '../utils/printer';
 
 // Import heuristic functions
 import { manhattan } from '../heuristics/manhattan';
+import { blockingCount } from '../heuristics/blockingPieces';
 import { blockingDistance } from '../heuristics/blockingDistance';
 import { combined } from '../heuristics/combined';
 
-/**
- * Greedy Best-First Search: solely guided by heuristic h(n).
- * @param initialBoard - starting board
- * @returns solution and nodesExpanded
- */
-
-export function greedy( initialBoard: Board, heuristic: 'manhattan' | 'blocking' | 'combined' = 'manhattan'): {solution?: GameState; nodesExpanded: number } {
+export function greedy( initialBoard: Board, heuristic: 'manhattan' | 'blocking' | 'blockingCount' | 'combined' = 'manhattan'): {solution?: GameState; nodesExpanded: number } {
     // select heuristic function
-    const heuristicFn = heuristic === 'manhattan'
-        ? manhattan
-        : heuristic === 'blocking'
-        ? blockingDistance
-        : combined;    
-
+    const heuristicFn =
+        heuristic === 'manhattan'
+            ? manhattan
+            : heuristic === 'blocking'
+            ? blockingDistance
+            : heuristic === 'blockingCount'
+            ? blockingCount
+            : combined;
 
     const initialState: GameState = {
         board: initialBoard,
