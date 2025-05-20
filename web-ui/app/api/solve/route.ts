@@ -1,32 +1,78 @@
 import { NextResponse } from "next/server";
-import { GameState } from "@main/core/state";
-import { solveFromText, SolveResult } from "@main/solver";
+import { parsePuzzleFromString } from "@main/utils/parser";
+import { ucs } from "@main/algorithms/ucs";
+import { aStar } from "@main/algorithms/a_star";
+import { greedy } from "@main/algorithms/greedy";
+import { reconstructPath } from "@main/utils/printer";
 
 export async function POST(req: Request) {
-  const { content, algorithm, heuristic } = await req.json();
+  try {
+    console.log("Got solve request:", await req.clone().json());
+    const { content, algorithm, heuristic } = await req.json();
+    
+    if (!content) {
+      return NextResponse.json(
+        { error: "No puzzle content provided" },
+        { status: 400 }
+      );
+    }
+    
+    // Parse the board using your existing parser
+    const board = parsePuzzleFromString(content);
+    console.log("Parsed board:", board);
+    
+    // Select algorithm and solve
+    let result;
+    switch (algorithm) {
+      case "ucs":
+        result = ucs(board);
+        break;
+      case "astar":
+        result = aStar(board, heuristic);
+        break;
+      case "greedy":
+        result = greedy(board, heuristic);
+        break;
+      default:
+        return NextResponse.json(
+          { error: "Invalid algorithm" },
+          { status: 400 }
+        );
+    }
+    
+    const { solution, nodesExpanded } = result;
+    
+    if (!solution) {
+      return NextResponse.json(
+        { error: "No solution found" },
+        { status: 404 }
+      );
+    }
+    
+    // Reconstruct the path from the solution
+    const path = reconstructPath(solution);
 
-  // Now solveFromText returns { solution, nodesExpanded }
-  const { solution, nodesExpanded }: SolveResult = await solveFromText(
-    content,
-    algorithm,
-    heuristic
-  );
-
-  if (!solution) {
+    // Convert to format expected by frontend
+    const solutionSteps = path.map((state, index) => ({
+      board: state.board.serialize(),
+      move: index > 0 ? {
+        piece: state.lastMove!.pieceId,
+        direction: state.lastMove!.direction,
+        distance: state.lastMove!.distance,
+      } : null
+    }));
+    
+    return NextResponse.json({
+      solution: solutionSteps,
+      nodesExpanded,
+      moveCount: solutionSteps.length - 1  // First state is initial
+    });
+  } catch (error) {
+    console.error("Solver error:", error);
     return NextResponse.json(
-      { error: "No solution found" },
-      { status: 400 }
+      { error: error instanceof Error ? error.message : "Failed to solve puzzle" },
+      { status: 500 }
     );
   }
-
-  // Build the path array from the returned GameState
-  const path: { board: string; move?: any }[] = [];
-  let cur: GameState | undefined = solution;
-  while (cur) {
-    path.unshift({ board: cur.board.serialize(), move: cur.lastMove });
-    cur = cur.parent;
-  }
-
-  // Now `nodesExpanded` is available
-  return NextResponse.json({ solution: path, nodesExpanded });
 }
+

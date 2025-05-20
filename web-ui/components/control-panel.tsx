@@ -4,15 +4,18 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Play, Pause, SkipForward, SkipBack, RotateCcw } from "lucide-react"
 
-interface ControlPanelProps {
+type ControlPanelProps = {
   onSolve: () => void;
   onPrevStep: () => void;
   onNextStep: () => void;
   onReset: () => void;
+  onTogglePlayback: () => void;
+  isPlaying: boolean;
   canGoBack: boolean;
   canGoForward: boolean;
+  isSolved: boolean;
   isRunning: boolean;
-}
+};
 
 export default function ControlPanel({
   onSolve,
