@@ -2,6 +2,7 @@ import { parsePuzzle } from "./utils/parser";
 import { ucs } from "./algorithms/ucs";
 import { aStar } from "./algorithms/a_star";
 import { greedy } from "./algorithms/greedy";
+import { ida } from "./algorithms/ida"; // Import the IDA* algorithm
 import { GameState } from "./core/state";
 
 export interface SolveResult {
@@ -11,8 +12,8 @@ export interface SolveResult {
 
 export async function solveFromText(
     content: string,
-    algo: "ucs" | "astar" | "greedy",
-    heuristicName: "manhattan" | "blocking" | "combined" = "manhattan"
+    algo: "ucs" | "astar" | "greedy" | "ida", // Add "ida" as an option
+    heuristicName: "manhattan" | "blocking" | "combined" | "blockingCount" = "manhattan" // Add "blockingCount" as an option
 ): Promise<SolveResult> {
     const board = parsePuzzle(content);
     let result:
@@ -28,6 +29,9 @@ export async function solveFromText(
             break;
         case "greedy":
             result = greedy(board, heuristicName);
+            break;
+        case "ida":
+            result = ida(board, heuristicName); // Add IDA* algorithm handling
             break;
         default:
             throw new Error("Unsupported algorithm");

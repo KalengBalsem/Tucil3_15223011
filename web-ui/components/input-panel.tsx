@@ -8,10 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 interface InputPanelProps {
   onFileLoad: (fileContent: string) => void;
-  algorithm: "ucs" | "astar" | "greedy";
-  setAlgorithm: (algo: "ucs" | "astar" | "greedy") => void;
-  heuristic: "manhattan" | "blocking" | "combined";
-  setHeuristic: (heuristic: "manhattan" | "blocking" | "combined") => void;
+  algorithm: "ucs" | "astar" | "greedy" | "ida";
+  setAlgorithm: (algo: "ucs" | "astar" | "greedy" | "ida") => void;
+  heuristic: "manhattan" | "blocking" | "combined" | "blockingCount";
+  setHeuristic: (heuristic: "manhattan" | "blocking" | "combined" | "blockingCount") => void;
 }
 
 export default function InputPanel({
@@ -76,7 +76,7 @@ export default function InputPanel({
         <div className="mt-6 space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Algorithm</label>
-            <Select value={algorithm} onValueChange={(value: any) => setAlgorithm(value)}>
+            <Select value={algorithm} onValueChange={(value: string) => setAlgorithm(value as "ucs" | "astar" | "greedy" | "ida")}>
               <SelectTrigger>
                 <SelectValue placeholder="Select algorithm" />
               </SelectTrigger>
@@ -84,14 +84,15 @@ export default function InputPanel({
                 <SelectItem value="ucs">Uniform Cost Search</SelectItem>
                 <SelectItem value="astar">A* Search</SelectItem>
                 <SelectItem value="greedy">Greedy Best-First Search</SelectItem>
+                <SelectItem value="ida">Iterative Deepening A*</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {(algorithm === "astar" || algorithm === "greedy") && (
+          {(algorithm === "astar" || algorithm === "greedy" || algorithm === "ida") && (
             <div className="space-y-2">
               <label className="text-sm font-medium">Heuristic</label>
-              <Select value={heuristic} onValueChange={(value: any) => setHeuristic(value)}>
+              <Select value={heuristic} onValueChange={(value: string) => setHeuristic(value as "manhattan" | "blocking" | "combined" | "blockingCount")}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select heuristic" />
                 </SelectTrigger>
@@ -99,6 +100,7 @@ export default function InputPanel({
                   <SelectItem value="manhattan">Manhattan Distance</SelectItem>
                   <SelectItem value="blocking">Blocking Pieces</SelectItem>
                   <SelectItem value="combined">Combined</SelectItem>
+                  <SelectItem value="blockingCount">Blocking Count</SelectItem>
                 </SelectContent>
               </Select>
             </div>

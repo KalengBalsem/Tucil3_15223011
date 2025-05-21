@@ -3,6 +3,7 @@ import { parsePuzzleFromString } from "@main/utils/parser";
 import { ucs } from "@main/algorithms/ucs";
 import { aStar } from "@main/algorithms/a_star";
 import { greedy } from "@main/algorithms/greedy";
+import { ida } from "@main/algorithms/ida"; // Import the IDA* algorithm
 import { reconstructPath } from "@main/utils/printer";
 
 export async function POST(req: Request) {
@@ -31,6 +32,9 @@ export async function POST(req: Request) {
         break;
       case "greedy":
         result = greedy(board, heuristic);
+        break;
+      case "ida": // Add IDA* algorithm option
+        result = ida(board, heuristic);
         break;
       default:
         return NextResponse.json(
@@ -76,4 +80,3 @@ export async function POST(req: Request) {
     );
   }
 }
-

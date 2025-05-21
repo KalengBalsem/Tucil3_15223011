@@ -7,7 +7,7 @@ interface OutputPanelProps {
   time: number;
   movesCount: number;
   statesExpanded: number;
-  solution: any[];
+  solution: { move?: { pieceId: string; direction: string; distance: number } }[];
   currentStep: number;
 }
 
@@ -66,7 +66,7 @@ export default function OutputPanel({
               ) : (
                 <>
                   <p className="text-gray-400">No solution generated yet.</p>
-                  <p className="text-gray-400">Click "Solve" to begin.</p>
+                  <p className="text-gray-400">Click &quot;Solve&quot; to begin.</p>
                 </>
               )}
             </div>
@@ -87,7 +87,7 @@ export default function OutputPanel({
               ) : (
                 <>
                   <p className="text-gray-400">No solution generated yet.</p>
-                  <p className="text-gray-400">Click "Solve" to begin.</p>
+                  <p className="text-gray-400">Click &quot;Solve&quot; to begin.</p>
                 </>
               )}
             </div>

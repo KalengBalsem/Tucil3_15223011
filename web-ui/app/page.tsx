@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import PuzzleBoard from "@/components/puzzle-board";
 import ControlPanel from "@/components/control-panel";
 import InputPanel from "@/components/input-panel";
@@ -13,8 +13,8 @@ export default function Home() {
   const [fileContent, setFileContent] = useState<string>("");
 
   // Solver configuration
-  const [algorithm, setAlgorithm] = useState<"ucs" | "astar" | "greedy">("astar");
-  const [heuristic, setHeuristic] = useState<"manhattan" | "blocking" | "combined">("manhattan");
+  const [algorithm, setAlgorithm] = useState<"ucs" | "astar" | "greedy" | "ida">("astar");
+  const [heuristic, setHeuristic] = useState<"manhattan" | "blocking" | "combined" | "blockingCount">("manhattan");
 
   // Solver result
   const [solution, setSolution] = useState<SolutionStep[]>([]);
@@ -23,8 +23,9 @@ export default function Home() {
 
   // UI status & stats
   const [status, setStatus] = useState<"ready" | "running" | "done" | "error">("ready");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  // Removed unused isLoading state
   const [time, setTime] = useState<number>(0);
+  // Removed unused isLoading state
   const [movesCount, setMovesCount] = useState<number>(0);
   const [statesExpanded, setStatesExpanded] = useState<number>(0);
 
@@ -34,25 +35,31 @@ export default function Home() {
   // Current board visualization data
   const [boardState, setBoardState] = useState<BoardState | null>(null);
 
-  // Handle file upload and reset UI
   const handleFileLoad = (content: string) => {
     setFileContent(content);
     setStatus("ready");
     setSolution([]);
     setCurrentStep(0);
-    setBoardState(null);
     setExitRow(-1);
     setExitCol(-1);
     setTime(0);
     setMovesCount(0);
     setStatesExpanded(0);
+
+    // Parse the initial board state from the file content
+    const initialBoardState = updateBoardFromSolution({ board: content, move: null });
+    if (initialBoardState) {
+      setBoardState(initialBoardState);
+    } else {
+      setBoardState(null); // Reset if parsing fails
+    }
   };
 
   // Solve the current puzzle
   const handleSolve = async () => {
     if (!fileContent) return;
 
-    setIsLoading(true);
+    setIsPlaying(true);
     setStatus("running");
     setTime(0);
     setMovesCount(0);
@@ -98,19 +105,19 @@ export default function Home() {
       console.error("Solver error:", err);
       setStatus("error");
     } finally {
-      setIsLoading(false);
+      setIsPlaying(false);
     }
   };
 
   // Step navigation
-  const handleNextStep = () => {
+  const handleNextStep = useCallback(() => {
     if (currentStep < solution.length - 1) {
       const next = currentStep + 1;
       setCurrentStep(next);
       const board = updateBoardFromSolution(solution[next]);
       if (board) setBoardState(board);
     }
-  };
+  }, [currentStep, solution]);
 
   const handlePrevStep = () => {
     if (currentStep > 0) {
@@ -152,17 +159,17 @@ export default function Home() {
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
           <PuzzleBoard
-            boardState={boardState?.grid || []}
+            boardState={boardState?.grid || []} // Use `boardState` instead of `initialBoardState`
             currentStep={currentStep}
             solution={solution.map(step => ({
               board: step.board,
               move: step.move
-                ? {
-                    pieceId: (step.move as any).piece ?? (step.move as any).pieceId,
-                    direction: step.move.direction,
-                    distance: step.move.distance,
-                  }
-                : undefined
+          ? {
+              pieceId: (step.move as { piece?: string; pieceId?: string }).piece ?? (step.move as { piece?: string; pieceId?: string }).pieceId ?? "",
+              direction: (step.move as { direction: string }).direction,
+              distance: (step.move as { distance: number }).distance,
+            }
+          : undefined,
             }))}
             exitRow={exitRow}
             exitCol={exitCol}
@@ -176,9 +183,10 @@ export default function Home() {
             onTogglePlayback={() => setIsPlaying(p => !p)}
             onJumpToEnd={() => {
               if (solution.length > 0) {
-                setCurrentStep(solution.length - 1);
-                const board = updateBoardFromSolution(solution[solution.length - 1]);
-                if (board) setBoardState(board);
+          setIsPlaying(false); // Stop any ongoing playback
+          setCurrentStep(solution.length - 1);
+          const board = updateBoardFromSolution(solution[solution.length - 1]);
+          if (board) setBoardState(board);
               }
             }}
             isPlaying={isPlaying}
@@ -203,7 +211,15 @@ export default function Home() {
             time={time}
             movesCount={movesCount}
             statesExpanded={statesExpanded}
-            solution={solution}
+            solution={solution.map(step => ({
+              move: step.move
+                ? {
+                    pieceId: (step.move as { piece?: string; pieceId?: string }).piece ?? (step.move as { piece?: string; pieceId?: string }).pieceId ?? "",
+                    direction: step.move.direction,
+                    distance: step.move.distance,
+                  }
+                : undefined,
+            }))}
             currentStep={currentStep}
           />
         </div>
