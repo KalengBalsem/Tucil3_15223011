@@ -14,7 +14,7 @@ root/
 ├── src/         # Core solver logic (algorithms, heuristics, parser)
 ├── test/        # Puzzle test files (.txt)
 ├── web-ui/      # Next.js frontend interface
-├── index.ts     # CLI entry point
+├── doc/         # Assignment Report
 └── README.md
 ```
 
@@ -30,11 +30,15 @@ GH.III
 GHJ...
 LLJMM.
 ```
-- `6 6`: Board width and height
-- `11`: Number of vehicles
+- `6 6`: Board rows and column
+- `11`: Number of non-primary vehicles
 - Each subsequent line represents a board row
 
 ## 🚀 How to Run
+
+## Dependencies
+- Node.js: Version 18.x or higher (LTS recommended). Install from nodejs.org.
+- Next.js: Version 14.x or higher (included as a dependency in the web-ui folder). Installed automatically via npm install.
 
 ### Option 1: CLI (Terminal)
 1. **Install Dependencies** (from project root):
@@ -66,14 +70,28 @@ LLJMM.
    ```bash
    npm install
    ```
-3. **Start Development Server**:
-   ```bash
-   npm run dev
-   ```
-4. Open `http://localhost:3000` in your browser.  
-   - Paste or upload puzzle text
-   - Select algorithm and heuristic
-   - View step-by-step solution animations
+3. **Development Mode**:
+   - Start the development server:
+     ```bash
+     npm run dev
+     ```
+   - Open `http://localhost:3000` in your browser.
+4. **Production Mode**:
+   - Clear previous build and dependencies (optional, if needed):
+     ```bash
+     rm -rf .next node_modules
+     npm install
+     ```
+   - Build the application:
+     ```bash
+     npm run build
+     ```
+   - Start the production server:
+     ```bash
+     npm run start
+     ```
+   - Open `http://localhost:3000` in your browser.
+   - Paste or upload puzzle text, select algorithm and heuristic, and view step-by-step solution animations.
 
 ## Supported Algorithms
 | Algorithm | Description |
