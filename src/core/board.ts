@@ -1,4 +1,3 @@
-// src/core/board.ts
 import { Piece } from './piece';
 import { Move } from './move';
 

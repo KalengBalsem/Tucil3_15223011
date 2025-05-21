@@ -19,7 +19,6 @@ export async function POST(req: Request) {
     
     // Parse the board using your existing parser
     const board = parsePuzzleFromString(content);
-    console.log("Parsed board:", board);
     
     // Select algorithm and solve
     let result;

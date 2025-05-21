@@ -18,9 +18,20 @@ const CYAN_BRIGHT   = (s: string) => `\x1b[96m${s}${RESET}`
  * - Exit 'K' in bright cyan (even if off‐board)
  * - The piece just moved in bright green
  */
+
 export function boardToString(board: Board, highlightId?: string): string {
   const lines: string[] = []
 
+  // --- TOP off‐board exit ---
+  if (board.exitRow < 0) {
+    let top = ""
+    for (let c = 0; c < board.width; c++) {
+      top += c === board.exitCol ? CYAN_BRIGHT("K") : " "
+    }
+    lines.push(top)
+  }
+
+  // --- main board rows ---
   for (let r = 0; r < board.height; r++) {
     let row = ""
 
@@ -31,35 +42,25 @@ export function boardToString(board: Board, highlightId?: string): string {
       row += " "
     }
 
-    // on‐board cells
     for (let c = 0; c < board.width; c++) {
       let ch = "."
-
       // on‐board exit
       if (r === board.exitRow && c === board.exitCol) {
         ch = "K"
       } else {
-        const p = board.pieces.find((p) => {
-          for (let i = 0; i < p.length; i++) {
-            const rr = p.row + (p.orientation === "V" ? i : 0)
-            const cc = p.col + (p.orientation === "H" ? i : 0)
-            if (rr === r && cc === c) return true
-          }
-          return false
-        })
+        const p = board.pieces.find(p =>
+          [...Array(p.length)].some((_, i) =>
+            p.row + (p.orientation==="V"?i:0) === r &&
+            p.col + (p.orientation==="H"?i:0) === c
+          )
+        )
         if (p) ch = p.id
       }
 
-      // colorization
-      if (ch === "P") {
-        row += BOLD(YELLOW_BRIGHT(ch))
-      } else if (ch === "K") {
-        row += CYAN_BRIGHT(ch)
-      } else if (ch === highlightId) {
-        row += BOLD(GREEN_BRIGHT(ch))
-      } else {
-        row += ch
-      }
+      if (ch === "P")        row += BOLD(YELLOW_BRIGHT(ch))
+      else if (ch === "K")   row += CYAN_BRIGHT(ch)
+      else if (ch === highlightId) row += BOLD(GREEN_BRIGHT(ch))
+      else                   row += ch
     }
 
     // off‐board right exit
@@ -68,6 +69,15 @@ export function boardToString(board: Board, highlightId?: string): string {
     }
 
     lines.push(row)
+  }
+
+  // --- BOTTOM off‐board exit ---
+  if (board.exitRow >= board.height) {
+    let bot = ""
+    for (let c = 0; c < board.width; c++) {
+      bot += c === board.exitCol ? CYAN_BRIGHT("K") : " "
+    }
+    lines.push(bot)
   }
 
   return lines.join("\n")

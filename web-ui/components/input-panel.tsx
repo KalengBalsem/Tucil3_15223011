@@ -98,7 +98,7 @@ export default function InputPanel({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="manhattan">Manhattan Distance</SelectItem>
-                  <SelectItem value="blocking">Blocking Pieces</SelectItem>
+                  <SelectItem value="blocking">Blocking Distance</SelectItem>
                   <SelectItem value="combined">Combined</SelectItem>
                   <SelectItem value="blockingCount">Blocking Count</SelectItem>
                 </SelectContent>
