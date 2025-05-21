@@ -1,38 +1,25 @@
 import { Board } from '../core/board';
 
-/**
- * Counts how many vehicles block the primary piece's direct path to the exit.
- * Admissible because each blocker must slide at least once.
- */
-
 export function blockingCount(board: Board): number {
   const p = board.primary;
-  const blockers = new Set<string>();
+  if (board.isGoal()) return 0;
 
-  if (p.orientation === 'H') {
-    const row = p.row;
-    const start = p.col + p.length;
-    const end = board.exitCol;
-    const step = start <= end ? 1 : -1;
-    
-    for (let c = start; c !== end + step; c += step) {
-      if (c >= 0 && c < board.width) {
-        const ch = board.serialize().split('|')[row][c];
-        if (ch !== '.' && ch !== 'K') blockers.add(ch);
-      }
-    }
-  } else {
-    const col = p.col;
-    const start = p.row + p.length;
-    const end = board.exitRow;
-    const step = start <= end ? 1 : -1;
-    
-    for (let r = start; r !== end + step; r += step) {
-      if (r >= 0 && r < board.height) {
-        const ch = board.serialize().split('|')[r][col];
-        if (ch !== '.' && ch !== 'K') blockers.add(ch);
-      }
-    }
+  const blockers = new Set<string>();
+  const occ = board.buildOccMap();
+
+  // Walk the corridor cells
+  let r = p.row + (p.orientation === 'V' ? p.length : 0);
+  let c = p.col + (p.orientation === 'H' ? p.length : 0);
+  const dr = p.orientation === 'V' ? (board.exitRow > p.row ? 1 : -1) : 0;
+  const dc = p.orientation === 'H' ? (board.exitCol > p.col ? 1 : -1) : 0;
+
+  while (r !== board.exitRow + dr || c !== board.exitCol + dc) {
+    const id = board.cellAt(r, c);
+    if (id && id !== '.' && id !== 'K') blockers.add(id);
+    r += dr;
+    c += dc;
   }
-  return blockers.size;
+
+  // P itself needs one slide plus each blocker
+  return 1 + blockers.size;
 }

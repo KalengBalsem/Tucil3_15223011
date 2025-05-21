@@ -79,7 +79,7 @@ async function main() {
   }
 
   // Run solver
-  console.log(`\nRunning ${algo.toUpperCase()}${ heuristic ? ' with ' + heuristic : '' }...`)
+  console.log(`\nRunning ${algo.toUpperCase()}${algo !== 'ucs' && heuristic ? ' with ' + heuristic : ''}...`)
   const t0 = performance.now()
 
   let result

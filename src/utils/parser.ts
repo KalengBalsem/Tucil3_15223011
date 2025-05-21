@@ -1,11 +1,10 @@
 import fs from "fs";
-import path from "path";
 import { Piece, Orientation } from "../core/piece";
 import { Board } from "../core/board";
 
 export function parsePuzzle(filePath: string): Board {
-    const content = fs.readFileSync(filePath, "utf-8").trim();
-    const lines = content.split(/\r?\n/).map((l) => l.trim());
+    const content = fs.readFileSync(filePath, "utf-8").trimEnd();
+    const lines = content.split(/\r?\n/);
 
     if (lines.length < 3) {
         throw new Error("Invalid file format: not enough lines");
@@ -137,7 +136,8 @@ export function parsePuzzle(filePath: string): Board {
  * Exit 'K' may appear on edges to indicate the exit location.
  */
 export function parsePuzzleFromString(content: string): Board {
-  const lines = content.trim().split(/\r?\n/).map(l => l.trim());
+  // preserve leading spaces in each row
+  const lines = content.trimEnd().split(/\r?\n/);
   if (lines.length < 3) throw new Error("Insufficient lines in puzzle input");
 
   // Parse dimensions
@@ -165,6 +165,7 @@ export function parsePuzzleFromString(content: string): Board {
       const c = rowStr.indexOf('K');
       exitRow = processedRows.length === 0 ? -1 : A;
       exitCol = c;
+      console.log(`Detected exit at row ${exitRow}, col ${exitCol}`);
       continue;
     }
     // Normal or side-exit row
