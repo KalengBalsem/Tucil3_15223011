@@ -1,14 +1,22 @@
-import chalk from "chalk"
+// src/utils/printer.ts
+
 import { GameState } from "../core/state"
-import { Board } from "../core/board"
-import { Move } from "../core/move"
+import { Board }     from "../core/board"
+import { Move }      from "../core/move"
+
+/** ANSI escape code helpers */
+const RESET        = "\x1b[0m"
+const BOLD         = (s: string) => `\x1b[1m${s}${RESET}`
+const YELLOW_BRIGHT = (s: string) => `\x1b[93m${s}${RESET}`
+const GREEN_BRIGHT  = (s: string) => `\x1b[92m${s}${RESET}`
+const CYAN_BRIGHT   = (s: string) => `\x1b[96m${s}${RESET}`
 
 /**
  * Convert a Board into a string representation (rows separated by newline).
  * Highlights:
- * - Primary piece 'P' in yellow
- * - Exit 'K' in cyan (even if off‐board)
- * - The piece just moved in green
+ * - Primary piece 'P' in bright yellow
+ * - Exit 'K' in bright cyan (even if off‐board)
+ * - The piece just moved in bright green
  */
 export function boardToString(board: Board, highlightId?: string): string {
   const lines: string[] = []
@@ -18,7 +26,7 @@ export function boardToString(board: Board, highlightId?: string): string {
 
     // off‐board left exit
     if (board.exitCol < 0 && r === board.exitRow) {
-      row += chalk.cyanBright("K")
+      row += CYAN_BRIGHT("K")
     } else if (board.exitCol < 0) {
       row += " "
     }
@@ -44,11 +52,11 @@ export function boardToString(board: Board, highlightId?: string): string {
 
       // colorization
       if (ch === "P") {
-        row += chalk.yellow.bold(ch)
+        row += BOLD(YELLOW_BRIGHT(ch))
       } else if (ch === "K") {
-        row += chalk.cyanBright(ch)
+        row += CYAN_BRIGHT(ch)
       } else if (ch === highlightId) {
-        row += chalk.greenBright.bold(ch)
+        row += BOLD(GREEN_BRIGHT(ch))
       } else {
         row += ch
       }
@@ -56,7 +64,7 @@ export function boardToString(board: Board, highlightId?: string): string {
 
     // off‐board right exit
     if (board.exitCol >= board.width && r === board.exitRow) {
-      row += chalk.cyanBright("K")
+      row += CYAN_BRIGHT("K")
     }
 
     lines.push(row)
@@ -85,7 +93,7 @@ export function printSolution(goal: GameState): void {
   const path = reconstructPath(goal)
   if (!path.length) return
 
-  console.log(chalk.bold("Papan Awal"))
+  console.log(BOLD("Papan Awal"))
   console.log(boardToString(path[0].board))
   console.log()
 
@@ -93,8 +101,8 @@ export function printSolution(goal: GameState): void {
     const state = path[i]
     const move: Move = state.lastMove!
     console.log(
-      chalk.bold(`Gerakan ${i}: `) +
-        chalk.greenBright(`${move.pieceId}-${move.direction}`)
+      BOLD(`Gerakan ${i}: `) +
+      GREEN_BRIGHT(`${move.pieceId}-${move.direction}`)
     )
     console.log(boardToString(state.board, move.pieceId))
     console.log()
