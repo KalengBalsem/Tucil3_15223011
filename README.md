@@ -44,10 +44,11 @@ LLJMM.
 1. **Install Dependencies** (from project root):
    ```bash
    npm install
+   npm run build
    ```
 2. **Run the Program**:
    ```bash
-   npm start
+   npm run start
    ```
    - Select algorithm (`ucs`, `greedy`, `astar`, `ida`)
    - Select heuristic (if applicable)
