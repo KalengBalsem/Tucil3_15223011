@@ -1,5 +1,8 @@
 # Rush Hour Puzzle Solver
 
+![Screenshot 2025-05-21 120707](https://github.com/user-attachments/assets/0a797fe2-95d6-4de8-b24d-65b118591ab8)
+
+
 This program solves the **Rush Hour sliding block puzzle** using pathfinding algorithms such as UCS, Greedy Best First Search, A*, and IDA*. The puzzle is read from a `.txt` file, and solutions can be visualized via CLI or Next.js-based web GUI.
 
 ## Features
